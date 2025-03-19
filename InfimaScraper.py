@@ -81,7 +81,7 @@ def fetch_data(start_date, end_date):
 
 # Define date range
 start_date = "2023-01-01"
-end_date = "2025-03-04"
+end_date = "2025-03-16"
 
 print(f"Fetching data from {start_date} to {end_date}...")
 records = fetch_data(start_date, end_date)
@@ -119,6 +119,6 @@ df["Valor"] = df["Cantidad"] * df["Costo U."]
 print(df.head())
 
 # Save to Excel file
-df.to_excel("ENE2023-MAR2025.xlsx", index=False)
+df.to_excel(f"INF-{start_date}-{end_date}.xlsx", index=False)
 
 print("Data successfully exported to Excel.")
