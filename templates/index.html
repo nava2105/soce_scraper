@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Extraction</title>
+    <style>
+        #loading {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-align: center;
+            padding-top: 20%;
+            font-size: 24px;
+        }
+    </style>
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    <h1>Data Extraction</h1>
+    <form action="/extract" method="post" onsubmit="showLoading()">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required><br><br>
+
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required><br><br>
+
+        <label for="type">Type of Process:</label>
+        <select id="type" name="type" required>
+            <option value="1">Ínfima Cuantía</option>
+            <option value="2">Procesos</option>
+            <option value="3">Regimen Especial</option>
+            <option value="4">Procedimiento especial</option>
+        </select><br><br>
+
+        <input type="submit" value="Extract Data">
+    </form>
+
+    <div id="loading">Loading, please wait...</div>
+</body>
+</html>
