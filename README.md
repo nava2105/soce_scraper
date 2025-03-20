@@ -43,7 +43,11 @@ soce_scraper is developed in Python 3.9, utilizing:
 ### Prerequisites
 - **Python 3.9**: Ensure that Python is installed and configured in your system.
 
+or
+- **Docker**: Ensure to have Docker installed and running in the system.
+
 ### Installation
+#### Via Github
 - **Clone the repository**
   ```bash
   git clone https://github.com/nava2105/soce_scraper.git
@@ -56,6 +60,16 @@ soce_scraper is developed in Python 3.9, utilizing:
 - **Run the application**
   ```bash
   python app.py
+  ```
+- **Access the application:** Open your web browser and navigate to http://localhost:5000
+#### Via Dockerhub
+- **Clone the docker image**
+  ```bash
+  docker pull na4va4/soce_scraper
+  ```
+- **Run the image in a container**
+  ```bash
+  docker run -p 5000:5000 na4va4/soce_scraper
   ```
 - **Access the application:** Open your web browser and navigate to http://localhost:5000
 

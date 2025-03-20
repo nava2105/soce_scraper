@@ -1,0 +1,8 @@
+*
+
+!/Services
+!/Services/*
+!/templates
+!/templates/*
+!app.py
+!requirements.txt
