@@ -1,6 +1,7 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template, send_file
 from Services.ScraperService import ScraperService
 from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre
+import os
 
 scraper = ScraperService()
 
@@ -8,14 +9,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return Response("Hello world!")
+    return render_template('index.html')
 
 @app.route('/extract', methods=['POST'])
-def scrape():
-    data = request.json
-    start_date = data.get('start_date')
-    end_date = data.get('end_date')
-    type = data.get('type')
+def extract():
+    data = request.form
+    print(data)
+    start_date = str(data.get('start_date'))
+    end_date = str(data.get('end_date'))
+    type = int(data.get('type'))
 
     if type == 1: # Ínfima Cuantía
         headers = {
@@ -123,7 +125,7 @@ def scrape():
         filename = export_excel_process_pre(records, start_date, end_date)
     else:
         return Response("Incorrect type, try again", status=400)
-    return Response(filename, status=201)
+    return send_file(filename, as_attachment=True)
 
 
 if __name__ == '__main__':
