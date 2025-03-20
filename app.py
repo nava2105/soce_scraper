@@ -45,7 +45,7 @@ def scrape():
             "_": ""
         }
         records = scraper.scrape(headers, data)
-        export_excel_process_inf(records, start_date, end_date)
+        filename = export_excel_process_inf(records, start_date, end_date)
     elif type == 2: # Procesos
         headers = {
             "Accept": "text/javascript, text/html, application/xml, text/xml, */*",
@@ -70,7 +70,7 @@ def scrape():
             "_": ""
         }
         records = scraper.scrape(headers, data)
-        export_excel_process_pro(records, start_date, end_date)
+        filename = export_excel_process_pro(records, start_date, end_date)
     elif type == 3: # Regimen Especial
         headers = {
             "Accept": "text/javascript, text/html, application/xml, text/xml, */*",
@@ -95,7 +95,7 @@ def scrape():
             "_": ""
         }
         records = scraper.scrape(headers, data)
-        export_excel_process_reg(records, start_date, end_date)
+        filename = export_excel_process_reg(records, start_date, end_date)
     elif type == 4: # Procedimiento especial
         headers = {
             "Accept": "text/javascript, text/html, application/xml, text/xml, */*",
@@ -120,8 +120,10 @@ def scrape():
             "_": ""
         }
         records = scraper.scrape(headers, data)
-        export_excel_process_pre(records, start_date, end_date)
-    return Response("Extraction completed!")
+        filename = export_excel_process_pre(records, start_date, end_date)
+    else:
+        return Response("Incorrect type, try again", status=400)
+    return Response(filename, status=201)
 
 
 if __name__ == '__main__':

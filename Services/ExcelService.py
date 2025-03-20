@@ -39,7 +39,7 @@ def export_excel_process_inf(records, start_date, end_date):
     # Save to Excel file
     df.to_excel(excel_filename, index=False)
 
-    print("Data successfully exported to Excel.")
+    return excel_filename
 
 def export_excel_process_pro(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -87,7 +87,7 @@ def export_excel_process_pro(records, start_date, end_date):
 
     wb.save(excel_filename)
 
-    print("Data successfully exported to Excel.")
+    return excel_filename
 
 def export_excel_process_reg(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -134,7 +134,7 @@ def export_excel_process_reg(records, start_date, end_date):
 
     wb.save(excel_filename)
 
-    print("Data successfully exported to Excel.")
+    return excel_filename
 
 def export_excel_process_pre(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -181,4 +181,4 @@ def export_excel_process_pre(records, start_date, end_date):
 
     wb.save(excel_filename)
 
-    print("Data successfully exported to Excel.")
+    return excel_filename
