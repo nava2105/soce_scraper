@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import re
 import time
+from bs4 import BeautifulSoup
 
 class ScraperService:
     def __init__(self):
@@ -48,3 +49,26 @@ class ScraperService:
             time.sleep(1)  # Wait 1 second
 
         return all_data
+
+    def fetch_details_from_links(self, modified_links):
+        data = []
+        for i, link in enumerate(modified_links, start=1):
+            link = link.replace("ProcesoContratacion/tab.php?tab=1&id=", "EC/resumenContractual1.cpe?idSoliCompra=")
+            response = requests.get(link)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                tds = soup.find_all('td')
+
+                if len(tds) > 86:
+                    codigo_proceso = tds[7].text.strip()
+                    administrador_contrato = tds[85].text.strip()
+                    data.append({
+                        "Código de Proceso": codigo_proceso,
+                        "Administrador de Contrato": administrador_contrato,
+                        "Link": link
+                    })
+                    print(i, ' | ', codigo_proceso, ' | ', administrador_contrato, ' | ', link)
+            else:
+                print(f"Failed to retrieve the page {link}. Status code: {response.status_code}")
+        return data

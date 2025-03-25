@@ -1,7 +1,8 @@
 from flask import Flask, request, Response, render_template, send_file
 from Services.ScraperService import ScraperService
-from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre
+from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
 import os
+import re
 
 scraper = ScraperService()
 

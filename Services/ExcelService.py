@@ -1,6 +1,8 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.worksheet.hyperlink import Hyperlink
+from openpyxl.writer.excel import save_workbook
+from openpyxl import load_workbook
 import pandas as pd
 
 def export_excel_process_inf(records, start_date, end_date):
@@ -182,3 +184,34 @@ def export_excel_process_pre(records, start_date, end_date):
     wb.save(excel_filename)
 
     return excel_filename
+
+def load_hyperlinks_from_excel(file_path):
+    workbook = load_workbook(file_path)
+    sheet = workbook.active
+    hyperlinks = []
+    for row in sheet.iter_rows():
+        for cell in row:
+            if cell.hyperlink:
+                hyperlinks.append(cell.hyperlink.target)
+    return list(set(hyperlinks))  # Remove duplicates
+
+def save_dataframe_to_excel(df, output_file_path):
+    with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+
+    workbook = load_workbook(output_file_path)
+    sheet = workbook.active
+    hyperlink_font = Font(color="0000FF", underline="single")
+
+    link_col = None
+    for col_num, cell in enumerate(sheet[1], start=1):
+        if cell.value == "Link":
+            link_col = col_num
+            break
+
+    if link_col:
+        for row_num, cell in enumerate(sheet.iter_rows(min_row=2, min_col=link_col, max_col=link_col), start=2):
+            cell[0].value = f'=HYPERLINK("{cell[0].value}", "Ver Detalle")'
+            cell[0].font = hyperlink_font  # Apply the font styling
+
+    workbook.save(output_file_path)
