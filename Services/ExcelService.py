@@ -4,6 +4,11 @@ from openpyxl.worksheet.hyperlink import Hyperlink
 from openpyxl.writer.excel import save_workbook
 from openpyxl import load_workbook
 import pandas as pd
+import os
+
+OUTPUT_FOLDER = "outputs"
+
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 def export_excel_process_inf(records, start_date, end_date):
     df = pd.DataFrame(records)
@@ -37,11 +42,12 @@ def export_excel_process_inf(records, start_date, end_date):
     # Show the first records
     print(df.head())
     excel_filename = f"INF-{start_date}-{end_date}.xlsx"
+    output_file_path = os.path.join(OUTPUT_FOLDER, excel_filename)
 
     # Save to Excel file
-    df.to_excel(excel_filename, index=False)
+    df.to_excel(output_file_path, index=False)
 
-    return excel_filename
+    return output_file_path
 
 def export_excel_process_pro(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -70,6 +76,7 @@ def export_excel_process_pro(records, start_date, end_date):
 
     # Guardar en Excel con hipervínculos
     excel_filename = f"PRO-{start_date}-{end_date}.xlsx"
+    output_file_path = os.path.join(OUTPUT_FOLDER, excel_filename)
     wb = Workbook()
     ws = wb.active
     ws.append(df.columns.tolist())
@@ -87,9 +94,9 @@ def export_excel_process_pro(records, start_date, end_date):
             cell.value = "Ver Detalle"  # Mostrar solo "Ver Detalle" en Excel
             cell.font = Font(color="0000FF", underline="single")  # Estilo azul y subrayado
 
-    wb.save(excel_filename)
+    wb.save(output_file_path)
 
-    return excel_filename
+    return output_file_path
 
 def export_excel_process_reg(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -117,6 +124,7 @@ def export_excel_process_reg(records, start_date, end_date):
 
     # Guardar en Excel con hipervínculos
     excel_filename = f"REG-{start_date}-{end_date}.xlsx"
+    output_file_path = os.path.join(OUTPUT_FOLDER, excel_filename)
     wb = Workbook()
     ws = wb.active
     ws.append(df.columns.tolist())
@@ -134,9 +142,9 @@ def export_excel_process_reg(records, start_date, end_date):
             cell.value = "Ver Detalle"  # Mostrar solo "Ver Detalle" en Excel
             cell.font = Font(color="0000FF", underline="single")  # Estilo azul y subrayado
 
-    wb.save(excel_filename)
+    wb.save(output_file_path)
 
-    return excel_filename
+    return output_file_path
 
 def export_excel_process_pre(records, start_date, end_date):
     # Convert to a Pandas DataFrame
@@ -164,6 +172,7 @@ def export_excel_process_pre(records, start_date, end_date):
 
     # Guardar en Excel con hipervínculos
     excel_filename = f"PRE-{start_date}-{end_date}.xlsx"
+    output_file_path = os.path.join(OUTPUT_FOLDER, excel_filename)
     wb = Workbook()
     ws = wb.active
     ws.append(df.columns.tolist())
@@ -181,9 +190,9 @@ def export_excel_process_pre(records, start_date, end_date):
             cell.value = "Ver Detalle"  # Mostrar solo "Ver Detalle" en Excel
             cell.font = Font(color="0000FF", underline="single")  # Estilo azul y subrayado
 
-    wb.save(excel_filename)
+    wb.save(output_file_path)
 
-    return excel_filename
+    return output_file_path
 
 def load_hyperlinks_from_excel(file_path):
     workbook = load_workbook(file_path)

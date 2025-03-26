@@ -4,26 +4,13 @@
 
 {% block content %}
     <div class="container mt-5">
-        <h1>Extractor de datos</h1>
-        <form id="dataForm" action="{{ url_for('extract') }}" method="POST">
+        <h1>Extractor de Administradores de Contrato</h1>
+        <form id="uploadForm" action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="start_date">Fecha de inicio:</label>
-                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                <label for="file">Selecciona un archivo Excel:</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
             </div>
-            <div class="form-group">
-                <label for="end_date">Fecha de finalización:</label>
-                <input type="date" class="form-control" id="end_date" name="end_date" required>
-            </div>
-            <div class="form-group">
-                <label for="type">Tipo de proceso:</label>
-                <select class="form-control" id="type" name="type" required>
-                    <option value="1">Ínfima Cuantía</option>
-                    <option value="2">Procesos</option>
-                    <option value="3">Regimen Especial</option>
-                    <option value="4">Procedimiento especial</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Extract Data</button>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Subir el archivo</button>
         </form>
         <div id="loading" class="mt-3">
             <div class="spinner-border" role="status">
@@ -32,20 +19,18 @@
             <span> Extrayendo datos...</span>
         </div>
     </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-    $('#dataForm').on('submit', function(e) {
+    $('#uploadForm').on('submit', function(e) {
         e.preventDefault(); // Prevent the default form submission
         document.getElementById('loading').style.display = 'block'; // Show loading spinner
 
         $.ajax({
             type: 'POST',
             url: $(this).attr('action'),
-            data: $(this).serialize(),
-            xhrFields: {
-                responseType: 'blob' // Set the response type to blob for file download
-            },
+            data: new FormData(this), // Use FormData for file uploads
+            processData: false, // Prevent jQuery from processing the data
+            contentType: false, // Prevent jQuery from setting content type
             success: function(data, status, xhr) {
                 // Create a link element to download the file
                 var blob = new Blob([data], { type: xhr.getResponseHeader('Content-Type') });
@@ -64,5 +49,4 @@
         });
     });
 </script>
-
 {% endblock %}

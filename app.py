@@ -1,16 +1,27 @@
 from flask import Flask, request, Response, render_template, send_file
-from Services.ScraperService import ScraperService
+from Services.ScraperService import ScraperService, fetch_admin
 from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
 import os
 import re
+import pandas as pd
+from datetime import datetime
 
 scraper = ScraperService()
-
 app = Flask(__name__)
+
+UPLOAD_FOLDER = "uploads"
+OUTPUT_FOLDER = "outputs"
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/admins')
+def admins():
+    return render_template('other.html')
 
 @app.route('/extract', methods=['POST'])
 def extract():
@@ -127,6 +138,40 @@ def extract():
     else:
         return Response("Incorrect type, try again", status=400)
     return send_file(filename, as_attachment=True)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return Response("No file part", status=400)
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return Response("No selected file", status=400)
+
+    if not file.filename.endswith('.xlsx'):
+        return Response("Only Excel files are allowed", status=400)
+
+    # Save the uploaded file temporarily
+    file_path = os.path.join("uploads", file.filename)
+    file.save(file_path)
+
+    # Load hyperlinks from the uploaded Excel file
+    hyperlinks = load_hyperlinks_from_excel(file_path)
+
+    # Modify links as needed
+    modified_links = [re.sub("PC/informacion", "", link).replace("2.cpe?idSoliCompra=", "/tab.php?tab=1&id=") for link
+                      in hyperlinks]
+
+    # Fetch details
+    data = fetch_admin(modified_links)
+
+    # Create DataFrame and save to Excel
+    df = pd.DataFrame(data)
+    output_file_path = os.path.join("outputs", f"{file.filename.replace('.xlsx', '')}-ADM.xlsx")
+    save_dataframe_to_excel(df, output_file_path)
+
+    return send_file(output_file_path, as_attachment=True)
 
 
 if __name__ == '__main__':
