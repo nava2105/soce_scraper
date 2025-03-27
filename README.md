@@ -75,8 +75,13 @@ or
 
 ## Usage
 Once the application is up and running, you can interact with the system by:
+### For extracting procedures: 
 - Selecting the start and end dates for the data extraction.
 - Choosing the type of procurement process.
+- Submitting the form to generate and download the corresponding Excel file.
+
+### For extracting contract administrators (Only on procedure with state: Contract Execution, Finished, In Receipt or Unilaterally Finished):
+- Submit an Excel file in witch one column must have the links to the procedures similar to the result of the procedure extraction.
 - Submitting the form to generate and download the corresponding Excel file.
 
 ### License
