@@ -22,29 +22,45 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     $('#uploadForm').on('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        document.getElementById('loading').style.display = 'block'; // Show loading spinner
+        e.preventDefault();
+        document.getElementById('loading').style.display = 'block';
 
         $.ajax({
             type: 'POST',
             url: $(this).attr('action'),
-            data: new FormData(this), // Use FormData for file uploads
-            processData: false, // Prevent jQuery from processing the data
-            contentType: false, // Prevent jQuery from setting content type
-            success: function(data, status, xhr) {
-                // Create a link element to download the file
-                var blob = new Blob([data], { type: xhr.getResponseHeader('Content-Type') });
-                var link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = xhr.getResponseHeader('Content-Disposition').split('filename=')[1]; // Get filename from header
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                document.getElementById('loading').style.display = 'none'; // Hide loading indicator
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
+            xhrFields: {
+                responseType: 'blob'  // Important: Set the response type to blob
             },
-            error: function() {
+            success: function(blob, status, xhr) {
+                // Get the filename from the Content-Disposition header
+                var filename = "";
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create download link
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename || 'download.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                document.getElementById('loading').style.display = 'none';
+            },
+            error: function(xhr, status, error) {
                 alert('Un error ha ocurrido, vuelva a intentar.');
-                document.getElementById('loading').style.display = 'none'; // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
             }
         });
     });

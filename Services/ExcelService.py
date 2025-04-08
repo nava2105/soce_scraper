@@ -204,23 +204,36 @@ def load_hyperlinks_from_excel(file_path):
                 hyperlinks.append(cell.hyperlink.target)
     return list(set(hyperlinks))  # Remove duplicates
 
-def save_dataframe_to_excel(df, output_file_path):
-    with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False)
-
+def save_dataframe_to_excel(df, filename):
+    output_file_path = os.path.join("outputs", f"{filename.replace('.xlsx', '')}-ADM.xlsx")
+    
+    # Save DataFrame to Excel with openpyxl engine
+    df.to_excel(output_file_path, index=False, engine='openpyxl')
+    
+    # Load the workbook to add hyperlinks
     workbook = load_workbook(output_file_path)
     sheet = workbook.active
-    hyperlink_font = Font(color="0000FF", underline="single")
-
+    
+    # Find the Link column
     link_col = None
-    for col_num, cell in enumerate(sheet[1], start=1):
-        if cell.value == "Link":
-            link_col = col_num
+    for idx, col in enumerate(df.columns, 1):
+        if col == "Link":
+            link_col = idx
             break
-
+    
     if link_col:
-        for row_num, cell in enumerate(sheet.iter_rows(min_row=2, min_col=link_col, max_col=link_col), start=2):
-            cell[0].value = f'=HYPERLINK("{cell[0].value}", "Ver Detalle")'
-            cell[0].font = hyperlink_font  # Apply the font styling
-
+        # Format hyperlinks
+        for row in range(2, sheet.max_row + 1):
+            cell = sheet.cell(row=row, column=link_col)
+            if cell.value:
+                cell.hyperlink = Hyperlink(ref=cell.coordinate, 
+                                         target=str(cell.value),
+                                         display="Ver Detalle")
+                cell.value = "Ver Detalle"
+                cell.font = Font(color="0000FF", underline="single")
+    
+    # Save and close
     workbook.save(output_file_path)
+    workbook.close()
+    
+    return output_file_path

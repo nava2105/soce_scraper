@@ -168,8 +168,7 @@ def upload_file():
 
     # Create DataFrame and save to Excel
     df = pd.DataFrame(data)
-    output_file_path = os.path.join("outputs", f"{file.filename.replace('.xlsx', '')}-ADM.xlsx")
-    save_dataframe_to_excel(df, output_file_path)
+    output_file_path = save_dataframe_to_excel(df, file.filename)
 
     return send_file(output_file_path, as_attachment=True)
 
