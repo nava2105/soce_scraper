@@ -5,15 +5,132 @@
 {% block content %}
     <div class="container mt-5">
         <h1>Extractor de Comisiones Técnicas con Gemini AI</h1>
-        <form id="uploadForm" action="{{ url_for('upload_resolution_file') }}" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="file">Selecciona un archivo PDF:</label>
-                <input type="file" class="form-control" id="file" name="file" accept=".pdf" multiple required>
+        <div class="row">
+            <div class="col-md-6">
+                <form id="uploadForm" action="{{ url_for('upload_resolution_file') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Selecciona un archivo PDF:</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".pdf" multiple required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 15px">Subir el archivo</button>
+                </form>
+                <pre id="answer"></pre>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Subir el archivo</button>
-        </form>
-        <form id="deleteForm" action="{{ url_for('delete_all_resolution_files') }}" method="POST" enctype="multipart/form-data">
-            <button type="submit" class="btn btn-danger" style="margin-top: 15px">Eliminar todos los archivos</button>
-        </form>
+            <div class="col-md-6">
+                <ul class="list-group">
+                    <form action="/technical_commissions" method="get" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" placeholder="Buscar Resolución..." value="{{ search_query }}">
+                            <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+                        </div>
+                    </form>
+                    {% for file in files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{ file }}
+                                </div>
+                                <div class="col-md-8">
+                                    <button class="btn btn-success view-response-btn" data-filename="{{ file }}">Ver Respuesta</button>
+                                    <button class="btn btn-warning ask-btn" data-filename="{{ file }}">Consultar</button>
+                                    <button class="btn btn-danger delete-btn" data-filename="{{ file }}">Eliminar</button>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-4">
+                    <button class="btn btn-secondary" id="export-csv">Export all to CSV</button>
+                    <button class="btn btn-primary" id="ask-all">Ask All</button>
+                    <button class="btn btn-danger" id="delete-all">Delete All</button>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if current_page > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('technical_commissions', page=current_page - 1, search=search_query) }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for p in range(1, total_pages + 1) %}
+                            <li class="page-item {% if p == current_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('technical_commissions', page=p, search=search_query) }}">{{ p }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if current_page < total_pages %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('technical_commissions', page=current_page + 1, search=search_query) }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            <script>
+                document.querySelectorAll(".delete-btn").forEach(button => {
+                    button.addEventListener("click", async function() {
+                        let filename = this.getAttribute("data-filename");
+                        if (confirm("Esta seguro que desea eliminar esta resolución y sus resultados?")) {
+                            let response = await fetch("/delete", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ filename })
+                            });
+                            let data = await response.json();
+                            alert(data.message);
+                            location.reload();
+                        }
+                    });
+                });
+                document.querySelectorAll(".ask-btn").forEach(button => {
+                    button.addEventListener("click", async function() {
+                        let filename = this.getAttribute("data-filename");
+                        let response = await fetch("/ask", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ filename })
+                        });
+                        let data = await response.json();
+                        document.getElementById("answer").innerText = data.answer;
+                    });
+                });
+                document.querySelectorAll(".view-response-btn").forEach(button => {
+                    button.addEventListener("click", async function() {
+                        let filename = this.getAttribute("data-filename");
+                        let response = await fetch("/responses?filename=" + filename);
+                        let data = await response.json();
+                        document.getElementById("answer").innerText = data.answer || "No se ha encontrado una respuesta almacenada.";
+                    });
+                });
+                document.getElementById("ask-all").addEventListener("click", async function () {
+                    const filenames = Array.from(document.querySelectorAll(".ask-btn"))
+                        .map(button => button.getAttribute("data-filename"));
+
+                    let response = await fetch("/ask_all", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ filenames })
+                    });
+                    let data = await response.json();
+                    document.getElementById("answer").innerText = "Files processed in batch";
+                });
+                document.getElementById("export-csv").addEventListener("click", function () {
+                    window.location.href = "/export_csv";
+                });
+                document.getElementById("delete-all").addEventListener("click", async function () {
+                    if (confirm("¿Está seguro que desea eliminar todas las resoluciones y sus resultados?")) {
+                        let response = await fetch("/delete_all", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        });
+                        let data = await response.json();
+                        alert(data.message);
+                        location.reload();
+                    }
+                });
+            </script>
+        </div>
     </div>
 {% endblock %}
