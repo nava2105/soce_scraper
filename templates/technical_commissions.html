@@ -5,5 +5,15 @@
 {% block content %}
     <div class="container mt-5">
         <h1>Extractor de Comisiones Técnicas con Gemini AI</h1>
+        <form id="uploadForm" action="{{ url_for('upload_resolution_file') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Selecciona un archivo PDF:</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".pdf" multiple required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Subir el archivo</button>
+        </form>
+        <form id="deleteForm" action="{{ url_for('delete_all_resolution_files') }}" method="POST" enctype="multipart/form-data">
+            <button type="submit" class="btn btn-danger" style="margin-top: 15px">Eliminar todos los archivos</button>
+        </form>
     </div>
 {% endblock %}
