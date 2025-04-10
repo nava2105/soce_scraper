@@ -1,5 +1,7 @@
 FROM python:3.9
 
+ENV GOOGLE_API_KEY="AIzaSyAhhOb8cNZRLzH45YHOhTEWM968EAmgbt4"
+
 WORKDIR /app
 
 COPY . .

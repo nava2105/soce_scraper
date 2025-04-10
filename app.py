@@ -1,20 +1,28 @@
 from flask import Flask, request, Response, render_template, send_file
-from Services.ScraperService import ScraperService, fetch_admin
-from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
-from Services.StorageService import delete_files_in_directory
+from datetime import datetime
+import pandas as pd
 import os
 import re
-import pandas as pd
-from datetime import datetime
+
+from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
+from Services.LlmService import configure_gemini_api, generate_text_embeddings, generate_ai_response
+from Services.PdfService import allowed_file, extract_text_chunks
+from Services.ScraperService import ScraperService, fetch_admin
+from Services.StorageService import delete_files_in_directory
+
 
 scraper = ScraperService()
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "outputs"
+RESOLUTIONS_FOLDER = "resolutions"
+JSON_STORE = 'embeddings_store.json'
+RESPONSES_STORE = 'responses_store.json'
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+os.makedirs(RESOLUTIONS_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -33,6 +41,12 @@ def admins():
     delete_files_in_directory(OUTPUT_FOLDER)
     delete_files_in_directory(UPLOAD_FOLDER)
     return render_template('admins.html')
+
+@app.route('/technical_commissions')
+def technical_commissions():
+    delete_files_in_directory(OUTPUT_FOLDER)
+    delete_files_in_directory(UPLOAD_FOLDER)
+    return render_template('technical_commissions.html')
 
 @app.route('/extract', methods=['POST'])
 def extract():
