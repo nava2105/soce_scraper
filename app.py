@@ -1,6 +1,7 @@
 from flask import Flask, request, Response, render_template, send_file
 from Services.ScraperService import ScraperService, fetch_admin
 from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
+from Services.StorageService import delete_files_in_directory
 import os
 import re
 import pandas as pd
@@ -17,11 +18,21 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
+    delete_files_in_directory(OUTPUT_FOLDER)
+    delete_files_in_directory(UPLOAD_FOLDER)
     return render_template('index.html')
+
+@app.route('/processes')
+def processes():
+    delete_files_in_directory(OUTPUT_FOLDER)
+    delete_files_in_directory(UPLOAD_FOLDER)
+    return render_template('processes.html')
 
 @app.route('/admins')
 def admins():
-    return render_template('other.html')
+    delete_files_in_directory(OUTPUT_FOLDER)
+    delete_files_in_directory(UPLOAD_FOLDER)
+    return render_template('admins.html')
 
 @app.route('/extract', methods=['POST'])
 def extract():
