@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}SOCE Data Extractor{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Extractor de Procesos del SOCE</h1>
+        <form id="dataForm" action="{{ url_for('extract') }}" method="POST">
+            <div class="form-group">
+                <label for="start_date">Fecha de inicio:</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Fecha de finalización:</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" required>
+            </div>
+            <div class="form-group">
+                <label for="type">Tipo de proceso:</label>
+                <select class="form-control" id="type" name="type" required>
+                    <option value="1">Ínfima Cuantía</option>
+                    <option value="2">Procesos</option>
+                    <option value="3">Regimen Especial</option>
+                    <option value="4">Procedimiento especial</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Extract Data</button>
+        </form>
+        <div id="loading" class="mt-3">
+            <div class="spinner-border" role="status">
+                <span class="sr-only"></span>
+            </div>
+            <span> Extrayendo datos...</span>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $('#dataForm').on('submit', function(e) {
+        e.preventDefault(); // Prevent the default form submission
+        document.getElementById('loading').style.display = 'block'; // Show loading spinner
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            xhrFields: {
+                responseType: 'blob' // Set the response type to blob for file download
+            },
+            success: function(data, status, xhr) {
+                // Create a link element to download the file
+                var blob = new Blob([data], { type: xhr.getResponseHeader('Content-Type') });
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = xhr.getResponseHeader('Content-Disposition').split('filename=')[1]; // Get filename from header
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                document.getElementById('loading').style.display = 'none'; // Hide loading indicator
+            },
+            error: function() {
+                alert('Un error ha ocurrido, vuelva a intentar.');
+                document.getElementById('loading').style.display = 'none'; // Hide loading indicator
+            }
+        });
+    });
+</script>
+
+{% endblock %}
