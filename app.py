@@ -9,7 +9,7 @@ import io
 import json
 import datetime
 
-from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel
+from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel, export_technical_commission_to_excel
 from Services.LlmService import configure_gemini_api, generate_text_embeddings, generate_ai_response
 from Services.PdfService import allowed_file, extract_text_chunks
 from Services.ScraperService import ScraperService, fetch_admin
@@ -237,140 +237,163 @@ def upload_file():
 
 @app.route('/upload_resolution', methods=['POST'])
 def upload_resolution_file():
-    if 'file' not in request.files:
-        return Response("No file part", status=400)
+    try:
+        if 'file' not in request.files:
+            return jsonify({'message': 'No se ha seleccionado ningún archivo'}), 400
 
-    files = request.files.getlist('file')
-    for file in files:
-        if file.filename == '':
-            return Response("No selected file", status=400)
+        files = request.files.getlist('file')
+        processed_files = []
+        
+        for file in files:
+            if file.filename == '':
+                continue
 
-        if not file.filename.lower().endswith('.pdf'):
-            return Response("Only PDF files are allowed", status=400)
+            if not file.filename.lower().endswith('.pdf'):
+                return jsonify({'message': 'Solo se permiten archivos PDF'}), 400
 
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(RESOLUTIONS_FOLDER, file.filename)
-        file.save(file_path)
-        text_chunks = extract_text_chunks(file_path)
-        embeddings = generate_text_embeddings(text_chunks)
-        if embeddings:
-            embeddings_store[filename] = {'chunks': embeddings}
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(RESOLUTIONS_FOLDER, file.filename)
+            file.save(file_path)
+            
+            text_chunks = extract_text_chunks(file_path)
+            embeddings = generate_text_embeddings(text_chunks)
+            
+            if embeddings:
+                embeddings_store[filename] = {'chunks': embeddings}
+                processed_files.append(filename)
+        
+        if processed_files:
             save_json_store(JSON_STORE, embeddings_store)
-    return jsonify({'answer': 'Resoluciones subidas y listas para procesar.'})
+            return jsonify({'message': f'Se han procesado {len(processed_files)} archivos exitosamente'})
+        else:
+            return jsonify({'message': 'No se pudo procesar ningún archivo'}), 400
+            
+    except Exception as e:
+        return jsonify({'message': f'Error al procesar los archivos: {str(e)}'}), 500
 
 @app.route('/responses', methods=['GET'])
 def get_saved_response():
-    filename = request.args.get('filename', '')
-    if filename in responses_store:
-        return jsonify({'answer': responses_store[filename]})
-    return jsonify({'answer': 'No se ha encontrado una respuesta almacenada.'})
+    try:
+        filename = request.args.get('filename')
+        if not filename:
+            return jsonify({'message': 'Nombre de archivo no proporcionado'}), 400
+            
+        response = responses_store.get(filename)
+        if response:
+            return jsonify({'answer': response})
+        return jsonify({'message': 'No se ha encontrado una respuesta almacenada.'}), 404
+    except Exception as e:
+        return jsonify({'message': f'Error al obtener la respuesta: {str(e)}'}), 500
 
 @app.route('/delete', methods=['POST'])
 def delete_file():
-    data = request.json
-    filename = data.get('filename', '')
+    try:
+        data = request.json
+        if not data or 'filename' not in data:
+            return jsonify({'message': 'Nombre de archivo no proporcionado'}), 400
 
-    if filename in embeddings_store:
-        del embeddings_store[filename]
+        filename = data['filename']
+        
+        # Remove from stores
+        embeddings_store.pop(filename, None)
+        responses_store.pop(filename, None)
+        
+        # Save updated stores
         save_json_store(JSON_STORE, embeddings_store)
-
-    if filename in responses_store:
-        del responses_store[filename]
         save_json_store(RESPONSES_STORE, responses_store)
 
-    # Optionally, delete the actual file from the uploads directory
-    file_path = os.path.join(RESOLUTIONS_FOLDER, filename)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+        # Remove physical file
+        file_path = os.path.join(RESOLUTIONS_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-    return jsonify({'answer': 'Resolución eliminada.'})
+        return jsonify({'message': 'Resolución eliminada exitosamente'})
+    except Exception as e:
+        return jsonify({'message': f'Error al eliminar el archivo: {str(e)}'}), 500
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
-    data = request.json
-    filename = data.get('filename', '')
-    if filename not in embeddings_store:
-        return jsonify({'error': 'Documento no encontrado'}), 400
-    document_data = embeddings_store[filename]
-    context = "\n".join([chunk[0] for chunk in document_data['chunks']])
-    prompt = f"Context:\n{context}\n\n{prompt_template}"
-    response_text = generate_ai_response(prompt)
-    responses_store[filename] = response_text
-    save_json_store(RESPONSES_STORE, responses_store)
-    return jsonify({'answer': response_text})
+    try:
+        data = request.json
+        if not data or 'filename' not in data:
+            return jsonify({'message': 'Nombre de archivo no proporcionado'}), 400
+
+        filename = data['filename']
+        if filename not in embeddings_store:
+            return jsonify({'message': 'Documento no encontrado'}), 404
+
+        document_data = embeddings_store[filename]
+        context = "\n".join([chunk[0] for chunk in document_data['chunks']])
+        prompt = f"Context:\n{context}\n\n{prompt_template}"
+        
+        response_text = generate_ai_response(prompt)
+        if not response_text:
+            return jsonify({'message': 'No se pudo generar una respuesta'}), 500
+
+        responses_store[filename] = response_text
+        save_json_store(RESPONSES_STORE, responses_store)
+        
+        return jsonify({'answer': response_text})
+    except Exception as e:
+        return jsonify({'message': f'Error al procesar la solicitud: {str(e)}'}), 500
 
 @app.route('/ask_all', methods=['POST'])
 def ask_all():
-    data = request.json
-    filenames = data.get('filenames', [])
-    responses = {}
+    try:
+        data = request.json
+        if not data or 'filenames' not in data:
+            return jsonify({'message': 'Lista de archivos no proporcionada'}), 400
 
-    for filename in filenames:
-        if filename in embeddings_store:
-            document_data = embeddings_store[filename]
-            context = "\n".join([chunk[0] for chunk in document_data['chunks']])
-            prompt = f"Context:\n{context}\n\n{prompt_template}"
-            response_text = generate_ai_response(prompt)
-            responses[filename] = response_text
-            responses_store[filename] = response_text
-            save_json_store(RESPONSES_STORE, responses_store)
+        filenames = data['filenames']
+        responses = {}
+        errors = {}
 
-    return jsonify(responses)
+        for filename in filenames:
+            try:
+                if filename not in embeddings_store:
+                    errors[filename] = 'Documento no encontrado'
+                    continue
+
+                document_data = embeddings_store[filename]
+                context = "\n".join([chunk[0] for chunk in document_data['chunks']])
+                prompt = f"Context:\n{context}\n\n{prompt_template}"
+                
+                response_text = generate_ai_response(prompt)
+                if response_text:
+                    responses[filename] = response_text
+                    responses_store[filename] = response_text
+                else:
+                    errors[filename] = 'No se pudo generar una respuesta'
+            except Exception as e:
+                errors[filename] = str(e)
+
+        save_json_store(RESPONSES_STORE, responses_store)
+
+        return jsonify({
+            'responses': responses,
+            'errors': errors,
+            'message': f'Procesados {len(responses)} archivos, {len(errors)} errores'
+        })
+    except Exception as e:
+        return jsonify({'message': f'Error al procesar la solicitud: {str(e)}'}), 500
 
 @app.route('/export_csv', methods=['GET'])
 def export_csv():
-    csv_output = []
-    responses_data = load_json_store(RESPONSES_STORE)
+    try:
+        responses_data = load_json_store(RESPONSES_STORE)
 
-    if not responses_data:
-        print("No hay datos en responses_store.json")
-        return Response("No hay datos para exportar", mimetype="text/plain")
+        if not responses_data:
+            return jsonify({'message': 'No hay datos para exportar'}), 404
 
-    for filename, response_text in responses_data.items():
-        doc_name = filename.replace('.pdf', '').replace('.PDF', '')
-
-        cleaned_text = re.sub(r'```json|```', '', response_text).strip()
-
-        try:
-            members_data = json.loads(cleaned_text)
-
-            if not isinstance(members_data, list):
-                print(f"Formato incorrecto en {filename}, se esperaba una lista.")
-                continue
-
-            for member in members_data:
-                row = [
-                    doc_name,
-                    (member.get("Miembro del comité") or "").strip(),
-                    (member.get("Cargo en la empresa") or "").strip(),
-                    (member.get("Cargo en la comisión") or "").strip()
-                ]
-                csv_output.append(row)
-        except json.JSONDecodeError as e:
-            print(f"Error al decodificar JSON en {filename}: {e}")
-
-    if not csv_output:
-        print("No se extrajeron datos válidos del JSON.")
-        return Response("No hay datos válidos para exportar", mimetype="text/plain")
-
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"{timestamp}-CELEC-COM.csv"
-
-    def generate():
-        output = io.StringIO()
-        output.write('\ufeff')
-        writer = csv.writer(output, delimiter='\t')
-
-        # Write headers
-        writer.writerow(["Código del proceso", "Nombre del miembro", "Cargo en la empresa", "Cargo en la comisión"])
-        for row in csv_output:
-            writer.writerow(row)
-
-        output.seek(0)
-        yield output.read()
-        output.close()
-
-    return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": f"attachment; filename={filename}"})
+        output_file_path = export_technical_commission_to_excel(responses_data)
+        
+        return send_file(
+            output_file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True
+        )
+    except Exception as e:
+        return jsonify({'message': f'Error al exportar Excel: {str(e)}'}), 500
 
 @app.route('/delete_all', methods=['POST'])
 def delete_all_file():

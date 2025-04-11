@@ -40,9 +40,9 @@
                     {% endfor %}
                 </ul>
                 <div class="mt-4">
-                    <button class="btn btn-secondary" id="export-csv">Export all to CSV</button>
-                    <button class="btn btn-primary" id="ask-all">Ask All</button>
-                    <button class="btn btn-danger" id="delete-all">Delete All</button>
+                    <button class="btn btn-secondary" id="export-csv">Informe en Excel</button>
+                    <button class="btn btn-primary" id="ask-all">Consultar Pagina</button>
+                    <button class="btn btn-danger" id="delete-all">Eliminar Todos</button>
                 </div>
                 <nav aria-label="Page navigation">
                     <ul class="pagination">
@@ -72,62 +72,106 @@
                 document.querySelectorAll(".delete-btn").forEach(button => {
                     button.addEventListener("click", async function() {
                         let filename = this.getAttribute("data-filename");
-                        if (confirm("Esta seguro que desea eliminar esta resolución y sus resultados?")) {
-                            let response = await fetch("/delete", {
+                        if (confirm("¿Esta seguro que desea eliminar esta resolución y sus resultados?")) {
+                            try {
+                                let response = await fetch("/delete", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ filename })
+                                });
+                                let data = await response.json();
+                                alert(data.message || data.answer);
+                                location.reload();
+                            } catch (error) {
+                                alert("Error al eliminar el archivo");
+                            }
+                        }
+                    });
+                });
+
+                document.querySelectorAll(".ask-btn").forEach(button => {
+                    button.addEventListener("click", async function() {
+                        let filename = this.getAttribute("data-filename");
+                        try {
+                            let response = await fetch("/ask", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ filename })
                             });
                             let data = await response.json();
-                            alert(data.message);
-                            location.reload();
+                            document.getElementById("answer").innerText = data.answer || data.message || "No se recibió respuesta";
+                        } catch (error) {
+                            document.getElementById("answer").innerText = "Error procesando la respuesta";
                         }
                     });
                 });
-                document.querySelectorAll(".ask-btn").forEach(button => {
-                    button.addEventListener("click", async function() {
-                        let filename = this.getAttribute("data-filename");
-                        let response = await fetch("/ask", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ filename })
-                        });
-                        let data = await response.json();
-                        document.getElementById("answer").innerText = data.answer;
-                    });
-                });
+
                 document.querySelectorAll(".view-response-btn").forEach(button => {
                     button.addEventListener("click", async function() {
                         let filename = this.getAttribute("data-filename");
-                        let response = await fetch("/responses?filename=" + filename);
-                        let data = await response.json();
-                        document.getElementById("answer").innerText = data.answer || "No se ha encontrado una respuesta almacenada.";
+                        try {
+                            let response = await fetch("/responses?filename=" + encodeURIComponent(filename));
+                            let data = await response.json();
+                            document.getElementById("answer").innerText = data.answer || data.message || "No se ha encontrado una respuesta almacenada.";
+                        } catch (error) {
+                            document.getElementById("answer").innerText = "Error al cargar la respuesta";
+                        }
                     });
                 });
+
                 document.getElementById("ask-all").addEventListener("click", async function () {
                     const filenames = Array.from(document.querySelectorAll(".ask-btn"))
                         .map(button => button.getAttribute("data-filename"));
-
-                    let response = await fetch("/ask_all", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ filenames })
-                    });
-                    let data = await response.json();
-                    document.getElementById("answer").innerText = "Files processed in batch";
-                });
-                document.getElementById("export-csv").addEventListener("click", function () {
-                    window.location.href = "/export_csv";
-                });
-                document.getElementById("delete-all").addEventListener("click", async function () {
-                    if (confirm("¿Está seguro que desea eliminar todas las resoluciones y sus resultados?")) {
-                        let response = await fetch("/delete_all", {
+                    try {
+                        let response = await fetch("/ask_all", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" }
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ filenames })
                         });
                         let data = await response.json();
+                        document.getElementById("answer").innerText = "Archivos procesados exitosamente";
+                    } catch (error) {
+                        document.getElementById("answer").innerText = "Error al procesar los archivos";
+                    }
+                });
+
+                document.getElementById("export-csv").addEventListener("click", async function () {
+                    try {
+                        window.location.href = "/export_csv";
+                    } catch (error) {
+                        alert("Error al exportar CSV");
+                    }
+                });
+
+                document.getElementById("delete-all").addEventListener("click", async function () {
+                    if (confirm("¿Está seguro que desea eliminar todas las resoluciones y sus resultados?")) {
+                        try {
+                            let response = await fetch("/delete_all", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" }
+                            });
+                            let data = await response.json();
+                            alert(data.message || data.answer);
+                            location.reload();
+                        } catch (error) {
+                            alert("Error al eliminar los archivos");
+                        }
+                    }
+                });
+                document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch(this.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
                         alert(data.message);
                         location.reload();
+                    } catch (error) {
+                        alert("Error al subir el archivo");
                     }
                 });
             </script>
