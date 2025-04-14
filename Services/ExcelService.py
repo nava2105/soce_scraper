@@ -5,6 +5,9 @@ from openpyxl.writer.excel import save_workbook
 from openpyxl import load_workbook
 import pandas as pd
 import os
+import re
+import json
+import datetime
 
 OUTPUT_FOLDER = "outputs"
 
@@ -236,4 +239,54 @@ def save_dataframe_to_excel(df, filename):
     workbook.save(output_file_path)
     workbook.close()
     
+    return output_file_path
+
+def export_technical_commission_to_excel(responses_data):
+    wb = Workbook()
+    ws = wb.active
+    
+    # Add headers
+    headers = ["Código del proceso", "Nombre del miembro", "Cargo en la empresa", "Cargo en la comisión"]
+    ws.append(headers)
+    
+    # Add data
+    for filename, response_text in responses_data.items():
+        doc_name = filename.replace('.pdf', '').replace('.PDF', '')
+        cleaned_text = re.sub(r'```json|```', '', response_text).strip()
+
+        try:
+            members_data = json.loads(cleaned_text)
+            if not isinstance(members_data, list):
+                continue
+
+            for member in members_data:
+                row = [
+                    doc_name,
+                    (member.get("Miembro del comité") or "").strip(),
+                    (member.get("Cargo en la empresa") or "").strip(),
+                    (member.get("Cargo en la comisión") or "").strip()
+                ]
+                ws.append(row)
+        except json.JSONDecodeError:
+            continue
+
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column = list(column)
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    # Generate filename with timestamp
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{timestamp}-CELEC-COM.xlsx"
+    output_file_path = os.path.join(OUTPUT_FOLDER, filename)
+    
+    wb.save(output_file_path)
     return output_file_path

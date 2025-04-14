@@ -1,8 +1,9 @@
 # soce_scraper: Extract data from th SOCE (Sistema Oficial de Contratación Pública del Ecuador)
-![Python](https://img.shields.io/badge/python-3.9-%233776AB.svg?style=for-the-badge&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-3.1.0-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
-![Pandas](https://img.shields.io/badge/Pandas-2.2.3-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
-![Requests](https://img.shields.io/badge/Requests-2.32.3-%23FF6F61.svg?style=for-the-badge&logo=requests&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
+![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/google%20gemini-8E75B2?style=for-the-badge&logo=google%20gemini&logoColor=white)
+![Requests](https://img.shields.io/badge/Requests-white?style=for-the-badge&logo=scrapy)
 
 ## Table of Contents
 1. [Abstract](#abstract)
@@ -38,6 +39,7 @@ soce_scraper is developed in Python 3.9, utilizing:
 - **Requests** for making HTTP requests to the SOCE website.
 - **Pandas** for data manipulation and analysis.
 - **Openpyxl** for exporting data to Excel files.
+- **Gemini** for asking the llm model the data in the start resolution pdf
 
 ## Installation
 ### Prerequisites
@@ -83,6 +85,10 @@ Once the application is up and running, you can interact with the system by:
 ### For extracting contract administrators (Only on procedure with state: Contract Execution, Finished, In Receipt or Unilaterally Finished):
 - Submit an Excel file in witch one column must have the links to the procedures similar to the result of the procedure extraction.
 - Submitting the form to generate and download the corresponding Excel file.
+
+### For extracting technical commission (Must upload the star resolution of the process):
+- Submit a list of pdf´s files of the start resolutions of the processes.
+- Ask for the technical commission ang GEMINI AI shall search for the answer.
 
 ### License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
