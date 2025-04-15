@@ -86,6 +86,10 @@ Once the application is up and running, you can interact with the system by:
 - Submit an Excel file in witch one column must have the links to the procedures similar to the result of the procedure extraction.
 - Submitting the form to generate and download the corresponding Excel file.
 
+### For extracting awarded suppliers (Only on procedure with state: Awarded, Awarded - Contract Registration, Contract Execution, In Receipt, Terminated, Terminated by Mutual Agreement or Unilaterally Terminated):
+- Submit an Excel file in witch one column must have the links to the procedures similar to the result of the procedure extraction.
+- Submitting the form to generate and download the corresponding Excel file.
+
 ### For extracting technical commission (Must upload the star resolution of the process):
 - Submit a list of pdf´s files of the start resolutions of the processes.
 - Ask for the technical commission ang GEMINI AI shall search for the answer.

@@ -9,10 +9,10 @@ import io
 import json
 import datetime
 
-from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel, export_technical_commission_to_excel
+from Services.ExcelService import export_excel_process_inf, export_excel_process_pro, export_excel_process_reg, export_excel_process_pre, load_hyperlinks_from_excel, save_dataframe_to_excel, export_technical_commission_to_excel, save_dataframe_prov_to_excel
 from Services.LlmService import configure_gemini_api, generate_text_embeddings, generate_ai_response
 from Services.PdfService import allowed_file, extract_text_chunks
-from Services.ScraperService import ScraperService, fetch_admin
+from Services.ScraperService import ScraperService, fetch_admin, fetch_provider
 from Services.StorageService import delete_files_in_directory
 
 
@@ -67,6 +67,12 @@ def admins():
     delete_files_in_directory(OUTPUT_FOLDER)
     delete_files_in_directory(UPLOAD_FOLDER)
     return render_template('admins.html')
+
+@app.route('/providers')
+def providers():
+    delete_files_in_directory(OUTPUT_FOLDER)
+    delete_files_in_directory(UPLOAD_FOLDER)
+    return render_template('providers.html')
 
 @app.route('/technical_commissions')
 def technical_commissions():
@@ -232,6 +238,39 @@ def upload_file():
     # Create DataFrame and save to Excel
     df = pd.DataFrame(data)
     output_file_path = save_dataframe_to_excel(df, file.filename)
+
+    return send_file(output_file_path, as_attachment=True)
+
+@app.route('/upload_prov', methods=['POST'])
+def upload_prov_file():
+    if 'file' not in request.files:
+        return Response("No file part", status=400)
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return Response("No selected file", status=400)
+
+    if not file.filename.endswith('.xlsx'):
+        return Response("Only Excel files are allowed", status=400)
+
+    # Save the uploaded file temporarily
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
+
+    # Load hyperlinks from the uploaded Excel file
+    hyperlinks = load_hyperlinks_from_excel(file_path)
+
+    # Modify links as needed
+    modified_links = [re.sub("PC/informacion", "", link).replace("2.cpe?idSoliCompra=", "/tab.php?tab=1&id=") for link
+                      in hyperlinks]
+
+    # Fetch details
+    data = fetch_provider(modified_links)
+
+    # Create DataFrame and save to Excel
+    df = pd.DataFrame(data)
+    output_file_path = save_dataframe_prov_to_excel(df, file.filename)
 
     return send_file(output_file_path, as_attachment=True)
 

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}SOCE Data Extractor{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Extractor de Proveedores Adjudicados de Procesos del SOCE</h1>
+        <form id="uploadForm" action="{{ url_for('upload_prov_file') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Selecciona un archivo Excel:</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px">Subir el archivo</button>
+        </form>
+        <div id="loading" class="mt-3">
+            <div class="spinner-border" role="status">
+                <span class="sr-only"></span>
+            </div>
+            <span> Extrayendo datos...</span>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $('#uploadForm').on('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('loading').style.display = 'block';
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
+            xhrFields: {
+                responseType: 'blob'  // Important: Set the response type to blob
+            },
+            success: function(blob, status, xhr) {
+                // Get the filename from the Content-Disposition header
+                var filename = "";
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create download link
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename || 'download.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                document.getElementById('loading').style.display = 'none';
+            },
+            error: function(xhr, status, error) {
+                alert('Un error ha ocurrido, vuelva a intentar.');
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

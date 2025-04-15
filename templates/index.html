@@ -3,9 +3,135 @@
 {% block title %}SOCE Data Extractor{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1>Extractor de datos para Empresa Pública CELEC EP</h1>
-        <p>Este sistema permite extraer datos del Sistema de Compras Públicas SOCE, automatizando el tiempo de obtención de la información</p>
+    <div class="container py-5 mb-auto">
+        <h1 class="display-4 mb-4 text-center">Extractor de datos para Empresa Pública CELEC EP</h1>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="card-title h3 mb-4 border-bottom pb-2">Descripción</h2>
+                        <p class="lead">Este sistema permite extraer datos del Sistema Oficial de Contratación Pública (SOCE), automatizando el tiempo de obtención de la información.</p>
+                        <p>La aplicación ofrece tres funcionalidades principales:</p>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="fas fa-file-export me-2"></i>
+                                <strong>Extracción de Procesos:</strong> Permite obtener información detallada de los procesos de contratación en diferentes modalidades.
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-users-cog me-2"></i>
+                                <strong>Extracción de Administradores:</strong> Facilita la obtención de datos sobre los administradores de contratos.
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-handshake me-2"></i>
+                                <strong>Extracción de Proveedores:</strong> Facilita la obtención de datos sobre los proveedores adjudicados de procesos.
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-brain me-2"></i>
+                                <strong>Análisis de Comisiones Técnicas:</strong> Utiliza inteligencia artificial para extraer información sobre los miembros de las comisiones técnicas.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="card-title h3 mb-4 border-bottom pb-2">Instrucciones de Uso</h2>
+                        <div class="accordion" id="instructionsAccordion">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                        <i class="fas fa-file-export me-2"></i>Para Extraer Procesos
+                                    </button>
+                                </h3>
+                                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#instructionsAccordion">
+                                    <div class="accordion-body">
+                                        <ol class="list-group list-group-numbered">
+                                            <li class="list-group-item">Seleccione "Extraer Procesos" en el menú superior</li>
+                                            <li class="list-group-item">Elija el rango de fechas deseado</li>
+                                            <li class="list-group-item">Seleccione el tipo de proceso a extraer</li>
+                                            <li class="list-group-item">Espere a que se genere el archivo Excel con los resultados</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                        <i class="fas fa-users-cog me-2"></i>Para Extraer Administradores
+                                    </button>
+                                </h3>
+                                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                    <div class="accordion-body">
+                                        <ol class="list-group list-group-numbered">
+                                            <li class="list-group-item">Seleccione "Extraer Administradores de Contrato" en el menú superior</li>
+                                            <li class="list-group-item">Cargue un archivo Excel que contenga los links del proceso de la pagina de la SERCOP</li>
+                                            <li class="list-group-item">El sistema procesará automáticamente la información</li>
+                                        </ol>
+                                        <div class="alert alert-info mt-3">
+                                            <small>Nota: El sistema solamente procesará los procesos en estado de: ejecución del contrato, en recepción, terminado o terminado unilateralmente</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                        <i class="fas fa-handshake me-2"></i>Para Extraer Proveedores
+                                    </button>
+                                </h3>
+                                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                    <div class="accordion-body">
+                                        <ol class="list-group list-group-numbered">
+                                            <li class="list-group-item">Seleccione "Extraer Proveedores Adjudicados" en el menú superior</li>
+                                            <li class="list-group-item">Cargue un archivo Excel que contenga los links del proceso de la pagina de la SERCOP</li>
+                                            <li class="list-group-item">El sistema procesará automáticamente la información</li>
+                                        </ol>
+                                        <div class="alert alert-info mt-3">
+                                            <small>Nota: El sistema solamente procesará los procesos en estado de: adjudicado, adjudicado - registro de contratos, ejecución de contrato, en recepción, finalizada, finalizado por mutuo acuerdo o terminado unilateralmente</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                        <i class="fas fa-brain me-2"></i>Para Analizar Comisiones Técnicas
+                                    </button>
+                                </h3>
+                                <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                    <div class="accordion-body">
+                                        <ol class="list-group list-group-numbered">
+                                            <li class="list-group-item">Seleccione "Extraer Comisiones Técnicas" en el menú superior</li>
+                                            <li class="list-group-item">Cargue los archivos PDF de las resoluciones de inicio</li>
+                                            <li class="list-group-item">Utilice los botones de consulta para procesar la información</li>
+                                            <li class="list-group-item">Exporte los resultados en formato Excel</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
+    <footer class="footer mt-auto py-4 bg-light">
+        <div class="container">
+            <h2 class="h4 text-center mb-4">Descargo de Responsabilidad</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <p class="text-muted small lh-lg">
+                        La información proporcionada por esta aplicación se genera automáticamente a partir de web scraping y de los datos introducidos y se procesa utilizando el modelo Gemini 1.5 de Google. Aunque nos esforzamos por asegurar la exactitud, no se ofrecen garantías sobre la corrección, integridad o fiabilidad de los datos producidos.
+                    </p>
+                    <p class="text-muted small lh-lg">
+                        Esta aplicación y su creador no asumen responsabilidad alguna por errores, omisiones o inexactitudes en los resultados generados. El usuario debe verificar la información de forma independiente antes de tomar cualquier decisión basada en los resultados proporcionados.
+                    </p>
+                    <p class="text-muted small lh-lg mb-0">
+                        Además, dado que esta aplicación funciona utilizando una API-KEY de Google AI, el creador se reserva el derecho a eliminar la KEY si los costes de la API cambian. Al utilizar esta aplicación, usted reconoce y acepta estos términos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
 {% endblock %}

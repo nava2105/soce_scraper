@@ -241,6 +241,41 @@ def save_dataframe_to_excel(df, filename):
     
     return output_file_path
 
+
+def save_dataframe_prov_to_excel(df, filename):
+    output_file_path = os.path.join("outputs", f"{filename.replace('.xlsx', '')}-PROV.xlsx")
+
+    # Save DataFrame to Excel with openpyxl engine
+    df.to_excel(output_file_path, index=False, engine='openpyxl')
+
+    # Load the workbook to add hyperlinks
+    workbook = load_workbook(output_file_path)
+    sheet = workbook.active
+
+    # Find the Link column
+    link_col = None
+    for idx, col in enumerate(df.columns, 1):
+        if col == "Link":
+            link_col = idx
+            break
+
+    if link_col:
+        # Format hyperlinks
+        for row in range(2, sheet.max_row + 1):
+            cell = sheet.cell(row=row, column=link_col)
+            if cell.value:
+                cell.hyperlink = Hyperlink(ref=cell.coordinate,
+                                           target=str(cell.value),
+                                           display="Ver Detalle")
+                cell.value = "Ver Detalle"
+                cell.font = Font(color="0000FF", underline="single")
+
+    # Save and close
+    workbook.save(output_file_path)
+    workbook.close()
+
+    return output_file_path
+
 def export_technical_commission_to_excel(responses_data):
     wb = Workbook()
     ws = wb.active
