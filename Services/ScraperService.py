@@ -24,7 +24,54 @@ def fetch_admin(modified_links):
                     "Administrador de Contrato": administrador_contrato,
                     "Link": link
                 })
-                print(i, ' | ', codigo_proceso, ' | ', administrador_contrato, ' | ', link)
+                print(i, " | ",data)
+        else:
+            print(f"Failed to retrieve the page {link}. Status code: {response.status_code}")
+    return data
+
+def fetch_provider(modified_links):
+    data = []
+    for i, link in enumerate(modified_links, start=1):
+        link = link.replace("ProcesoContratacion/tab.php?tab=1&id=", "EC/resumenContractual1.cpe?idSoliCompra=")
+        response = requests.get(link)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            tds = soup.find_all('td')
+            soup2 = BeautifulSoup(tds[38].decode_contents(), 'html.parser')
+            tds2 = soup2.find_all('td')
+
+            if len(tds) > 86:
+                codigo_proceso = tds[7].text.strip()
+                tipo_compra = tds[16].text.strip()
+                presupuesto_referencial = tds[19].text.strip()
+                if len(tds2) > 6:
+                    ruc_proveedor = tds2[6].text.strip()
+                    nombre_adjudicatario = tds2[7].text.strip()
+                    fecha_adjudicacion = tds2[8].text.strip()
+                    monto_adjudicacion = tds2[9].text.strip()
+                    data.append({
+                        "Código de Proceso": codigo_proceso,
+                        "Tipo de Compra": tipo_compra,
+                        "Presupuesto Referencial": presupuesto_referencial,
+                        "Ruc Proveedor": ruc_proveedor,
+                        "Nombre Adjudicatario": nombre_adjudicatario,
+                        "Fecha Adjudicacion": fecha_adjudicacion,
+                        "Monto Adjudicacion": monto_adjudicacion,
+                        "Link": link
+                    })
+                else:
+                    data.append({
+                        "Código de Proceso": codigo_proceso,
+                        "Tipo de Compra": tipo_compra,
+                        "Presupuesto Referencial": presupuesto_referencial,
+                        "Ruc Proveedor": "",
+                        "Nombre Adjudicatario": "",
+                        "Fecha Adjudicacion": "",
+                        "Monto Adjudicacion": "",
+                        "Link": link
+                    })
+                print(i, " | ", data)
         else:
             print(f"Failed to retrieve the page {link}. Status code: {response.status_code}")
     return data

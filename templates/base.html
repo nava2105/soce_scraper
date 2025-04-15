@@ -11,6 +11,15 @@
         #loading {
             display: none;
         }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+            
+        .footer {
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
@@ -29,6 +38,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admins') }}">Extraer Administradores de Contrato</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('providers') }}">Extraer Proveedores Adjudicados</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('technical_commissions') }}">Extraer Comisiones Técnicas</a>
